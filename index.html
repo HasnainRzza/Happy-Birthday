@@ -43,6 +43,15 @@
       margin: 10px 0;
       color: #fff;
     }
+    .timer {
+      font-size: 2em;
+      color: #fff;
+      margin: 20px 0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    .hidden {
+      display: none;
+    }
     @keyframes pulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.1); }
@@ -51,15 +60,23 @@
   </style>
 </head>
 <body>
-  <div class="message">
+  <div class="message" id="initialMessage">
     <h1>Happy Birthday, <span class="minah">Minah</span><span class="exclamation">!</span></h1>
     <p>My love, you make every day brighter!</p>
     <p>Wishing you a day full of joy and love!</p>
+    <p class="timer" id="timer"></p>
+  </div>
+  <div class="message hidden" id="birthdayMessage">
+    <h1>Happy Birthday, <span class="minah">Minah</span><span class="exclamation">!</span></h1>
+    <p>It's time to celebrate you!</p>
   </div>
   <script>
     let balloons = [];
     let stars = [];
     let sparkles = [];
+    let midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+    let showBirthdayMessage = false;
 
     class Balloon {
       constructor() {
@@ -159,10 +176,25 @@
       for (let i = 0; i < 50; i++) {
         sparkles.push(new Sparkle());
       }
+      updateTimer();
     }
 
     function draw() {
       clear();
+      if (showBirthdayMessage) {
+        fill(255, 105, 180);
+        noStroke();
+        beginShape();
+        let heartX = width / 2;
+        let heartY = height / 2;
+        let heartSize = 200;
+        for (let t = 0; t < TWO_PI; t += 0.01) {
+          let x = heartX + heartSize * 16 * pow(sin(t), 3);
+          let y = heartY - heartSize * (13 * cos(t) - 5 * cos(2 * t) - 2 * cos(3 * t) - cos(4 * t));
+          vertex(x, y);
+        }
+        endShape(CLOSE);
+      }
       for (let balloon of balloons) {
         balloon.move();
         balloon.display();
@@ -174,6 +206,23 @@
       for (let sparkle of sparkles) {
         sparkle.move();
         sparkle.display();
+      }
+    }
+
+    function updateTimer() {
+      let now = new Date();
+      let timeLeft = midnight - now;
+      if (timeLeft <= 0) {
+        showBirthdayMessage = true;
+        document.getElementById('initialMessage').classList.add('hidden');
+        document.getElementById('birthdayMessage').classList.remove('hidden');
+        document.getElementById('timer').classList.add('hidden');
+      } else {
+        let hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        let minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        let seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+        document.getElementById('timer').textContent = `Time until your special day: ${hours}h ${minutes}m ${seconds}s`;
+        setTimeout(updateTimer, 1000);
       }
     }
 
