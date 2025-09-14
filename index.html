@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Surprise for Minah</title>
+  <title>Happy Birthday Minah!</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <style>
     body {
       margin: 0;
       overflow: hidden;
-      background: radial-gradient(circle at center, #ff99cc, #66b3ff);
+      background: radial-gradient(circle at center, #ff99cc, #66b3ff, #1a1a66);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -20,113 +20,165 @@
       position: absolute;
       z-index: 1;
     }
-    .content {
+    .message {
       position: relative;
       z-index: 2;
       text-align: center;
-      color: #fff;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     }
-    .content h1 {
+    .message h1 {
       font-size: 3em;
-      margin: 20px 0;
+      margin: 0;
+      animation: pulse 2s infinite;
       color: #ffff00;
     }
-    .content h1 span {
+    .message h1 .minah {
       color: #ff69b4;
     }
-    .content p {
+    .message h1 .exclamation {
+      color: #ff69b4;
+    }
+    .message p {
       font-size: 1.5em;
       margin: 10px 0;
-    }
-    .content button {
-      padding: 10px 20px;
-      font-size: 1.2em;
-      background: #ff69b4;
       color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: transform 0.2s;
     }
-    .content button:hover {
-      transform: scale(1.1);
-    }
-    .hidden {
-      display: none;
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
     }
   </style>
 </head>
 <body>
-  <div class="content" id="wishes" class="hidden">
-    <h1>Best Wishes, <span>Minah</span>!</h1>
-    <p>My dearest Minah, you light up my world every day.</p>
-    <p>Wishing you endless joy, love, and happiness!</p>
-    <button id="nextButton">Next</button>
-  </div>
-  <div class="content" id="birthday" class="hidden">
-    <h1>Happy Birthday, <span>Minah</span>!</h1>
-    <p>Here's to celebrating you today and always!</p>
-    <button id="doneButton">Done</button>
+  <div class="message">
+    <h1>Happy Birthday, <span class="minah">Minah</span><span class="exclamation">!</span></h1>
+    <p>My love, you make every day brighter!</p>
+    <p>Wishing you a day full of joy and love!</p>
   </div>
   <script>
-    let envelopeClosed = true;
-    let redDotX, redDotY, redDotSize = 30;
-    let flapAngle = 0;
-    let opening = false;
+    let balloons = [];
+    let stars = [];
+    let sparkles = [];
+
+    class Balloon {
+      constructor() {
+        this.x = random(0, width * 0.25);
+        this.y = random(height);
+        this.speed = random(2, 5);
+        this.color = random(1) > 0.5 ? color(255, 0, 0) : color(135, 206, 235);
+        this.size = random(30, 50);
+      }
+
+      move() {
+        this.y -= this.speed;
+        this.x += random(-1, 1);
+        if (this.y < -this.size) {
+          this.y = height + this.size;
+          this.x = random(0, width * 0.25);
+        }
+      }
+
+      display() {
+        fill(this.color);
+        noStroke();
+        ellipse(this.x, this.y, this.size, this.size * 1.3);
+        stroke(0);
+        strokeWeight(1);
+        line(this.x, this.y + this.size * 0.65, this.x, this.y + this.size * 1.5);
+      }
+    }
+
+    class Star {
+      constructor() {
+        this.x = random(width);
+        this.y = random(height);
+        this.speed = random(1, 3);
+        this.size = random(2, 5);
+      }
+
+      move() {
+        this.x += this.speed;
+        if (this.x > width) {
+          this.x = -this.size;
+          this.y = random(height);
+        }
+      }
+
+      display() {
+        fill(255, 255, 0);
+        noStroke();
+        beginShape();
+        for (let i = 0; i < 5; i++) {
+          let angle = TWO_PI / 5 * i;
+          let x = this.x + cos(angle) * this.size;
+          let y = this.y + sin(angle) * this.size;
+          vertex(x, y);
+          angle += TWO_PI / 10;
+          x = this.x + cos(angle) * this.size * 0.5;
+          y = this.y + sin(angle) * this.size * 0.5;
+          vertex(x, y);
+        }
+        endShape(CLOSE);
+      }
+    }
+
+    class Sparkle {
+      constructor() {
+        this.x = random(width);
+        this.y = random(height);
+        this.alpha = random(50, 255);
+        this.size = random(2, 4);
+        this.fadeSpeed = random(2, 5);
+      }
+
+      move() {
+        this.alpha -= this.fadeSpeed;
+        if (this.alpha < 0) {
+          this.alpha = random(50, 255);
+          this.x = random(width);
+          this.y = random(height);
+        }
+      }
+
+      display() {
+        fill(255, 255, 255, this.alpha);
+        noStroke();
+        ellipse(this.x, this.y, this.size, this.size);
+      }
+    }
 
     function setup() {
       createCanvas(windowWidth, windowHeight);
-      redDotX = width / 2;
-      redDotY = height / 2 - 50;
+      for (let i = 0; i < 30; i++) {
+        balloons.push(new Balloon());
+      }
+      for (let i = 0; i < 30; i++) {
+        stars.push(new Star());
+      }
+      for (let i = 0; i < 50; i++) {
+        sparkles.push(new Sparkle());
+      }
     }
 
     function draw() {
       clear();
-      if (envelopeClosed || opening) {
-        fill(255, 245, 230);
-        rect(width / 2 - 100, height / 2 - 150, 200, 300);
-        if (!opening) {
-          fill(255, 0, 0);
-          ellipse(redDotX, redDotY, redDotSize, redDotSize);
-          fill(255, 245, 230);
-          triangle(width / 2 - 100, height / 2 - 150, width / 2 + 100, height / 2 - 150, width / 2, height / 2 - 50);
-        } else {
-          push();
-          translate(width / 2, height / 2 - 150);
-          rotate(radians(-flapAngle));
-          fill(255, 245, 230);
-          triangle(-100, 0, 100, 0, 0, 100);
-          pop();
-          flapAngle += 2;
-          if (flapAngle >= 180) {
-            opening = false;
-            envelopeClosed = false;
-            document.getElementById('wishes').classList.remove('hidden');
-          }
-        }
+      for (let balloon of balloons) {
+        balloon.move();
+        balloon.display();
+      }
+      for (let star of stars) {
+        star.move();
+        star.display();
+      }
+      for (let sparkle of sparkles) {
+        sparkle.move();
+        sparkle.display();
       }
     }
-
-    function mousePressed() {
-      if (envelopeClosed && dist(mouseX, mouseY, redDotX, redDotY) < redDotSize / 2) {
-        opening = true;
-      }
-    }
-
-    document.getElementById('nextButton').addEventListener('click', () => {
-      document.getElementById('wishes').classList.add('hidden');
-      document.getElementById('birthday').classList.remove('hidden');
-    });
-
-    document.getElementById('doneButton').addEventListener('click', () => {
-      document.getElementById('birthday').classList.add('hidden');
-    });
 
     function windowResized() {
       resizeCanvas(windowWidth, windowHeight);
-      redDotX = width / 2;
-      redDotY = height / 2 - 50;
     }
   </script>
 </body>
